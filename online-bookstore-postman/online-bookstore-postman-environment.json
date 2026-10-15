@@ -1,0 +1,44 @@
+{
+  "id": "a2d3a55b-ff21-4ac1-8a6f-7b4d1e1e6d8a",
+  "name": "Online Bookstore - Local Backend",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "enabled": true
+    },
+    {
+      "key": "customerEmail",
+      "value": "bookstore.customer.20261015@example.com",
+      "enabled": true
+    },
+    {
+      "key": "customerToken",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "bookId",
+      "value": "1",
+      "enabled": true
+    },
+    {
+      "key": "managedBookId",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "enabled": true
+    }
+  ],
+  "_postman_exported_at": "2026-10-15T14:50:00.000Z",
+  "_postman_exported_using": "ChatGPT",
+  "_postman_variable_scope": "environment"
+}

@@ -1,0 +1,53 @@
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+spring:
+  application:
+    name: bookstore-api
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:bookstoredb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    properties:
+      hibernate:
+        format_sql: false
+  h2:
+    console:
+      enabled: ${H2_CONSOLE_ENABLED:true}
+      path: /h2-console
+app:
+  jwt:
+    # Development-only fallback. Override JWT_SECRET in every non-local environment.
+    secret: ${JWT_SECRET:ZGV2ZWxvcG1lbnQtb25seS1rZXktY2hhbmdlLW1lLW5vdC1mb3ItcHJvZHVjdGlvbg==}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:60}
+  cors:
+    origins: ${APP_CORS_ORIGINS:http://localhost:5173}
+logging:
+  level:
+    org.springframework.security: INFO
+---
+spring:
+  config:
+    activate:
+      on-profile: mysql
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  h2:
+    console:
+      enabled: false
+
+# Include the correlation ID in every backend log line so requests can be traced end-to-end.
+logging:
+  level:
+    com.example.bookstore: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [requestId=%X{requestId:-no-request}] %logger{36} - %msg%n"
