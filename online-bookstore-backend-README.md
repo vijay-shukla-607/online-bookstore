@@ -2,7 +2,7 @@
 
 # Online Bookstore Backend — Local Run & API Testing Guide
 
-This guide is for testing **the backend only** before reviewing the React frontend. It covers prerequisites, startup, sample data, authentication, all REST endpoints, Postman request examples, and expected responses.
+This guide is for testing **the backend only** . It covers prerequisites, startup, sample data, authentication, all REST endpoints, Postman request examples, and expected responses.
 
 > **Local setup:** The default profile uses an H2 in-memory database. You do not need to install MySQL, create a database, or edit configuration files to start the backend. The application seeds three sample books and a local administrator on startup when the relevant tables are empty. H2 data is reset when the backend process stops.
 
@@ -37,7 +37,7 @@ Open PowerShell in the project root, then run:
 
 ```powershell
 cd backend
-mvn clean test
+mvn clean install
 ```
 
 Resolve any test failures before continuing. To start the API, run in the same `backend` directory:
@@ -375,3 +375,51 @@ Each API request is logged with HTTP method, path, response status, duration, an
 - **403 creating/updating/deleting books:** use the administrator token, not a customer token.
 - **Data disappeared:** expected with H2 in-memory mode after application shutdown.
 - **Admin login fails:** check that `app.seed-admin.enabled` is not set to `false` and that startup completed without seed errors.
+
+## 11. Architecture and Design Decisions
+
+### Application Architecture
+
+The backend follows a layered architecture using Spring Boot.
+
+- **API layer (`api`):** Exposes REST endpoints and handles HTTP requests and responses.
+- **Service layer (`service`):** Implements business logic for authentication, book management, cart operations, and order processing.
+- **Repository layer (`repo`):** Uses Spring Data JPA repositories to access persisted data.
+- **Domain layer (`domain`):** Contains the application's domain entities.
+- **Security layer (`security`):** Handles JWT-based authentication and request authorization.
+- **Configuration layer (`config`):** Contains application configuration and development setup.
+- **Error layer (`error`):** Centralizes exception handling and API error responses.
+
+### Key Design Decisions
+
+1. **Dependency injection:** Spring manages application components and their dependencies, supporting separation of concerns and testability.
+2. **DTOs for API contracts:** Request and response DTOs separate API representations from persistence entities.
+3. **Repository pattern:** Data access is separated from business logic through Spring Data JPA repositories.
+4. **Transactional checkout:** Checkout operations should maintain data consistency across order creation, inventory updates, and cart changes.
+5. **Centralized exception handling:** A global exception handler helps return consistent error responses and appropriate HTTP status codes.
+6. **JWT-based security:** Token-based authentication protects endpoints that require an authenticated user, with authorization rules applied where configured.
+7. **Validation:** Request validation helps reject invalid input before it reaches business logic.
+
+### Testing Strategy
+
+The automated test suite should cover the relevant application layers:
+
+- **API and validation tests:** Verify request validation and HTTP behavior.
+- **Controller tests:** Verify endpoint behavior and responses.
+- **Service tests:** Verify business rules and service behavior.
+- **Domain tests:** Verify domain object behavior and invariants.
+- **Exception-handling tests:** Verify error responses and HTTP status codes.
+
+Run the test suite before committing changes:
+
+```powershell
+.\mvnw.cmd clean test
+```
+
+Only report the tests as passing after the command completes successfully.
+
+### Local Development and Security Notes
+
+- The default local setup uses an in-memory H2 database; its data is reset when the application stops.
+- Development credentials and fallback JWT secrets are for local testing only and must not be reused in deployed environments.
+- Configure a persistent database, production-grade secrets, and additional security controls before deploying to a production environment.
