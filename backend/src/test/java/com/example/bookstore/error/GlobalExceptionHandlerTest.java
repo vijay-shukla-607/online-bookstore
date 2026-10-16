@@ -16,6 +16,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 class GlobalExceptionHandlerTest {
 
@@ -125,5 +128,41 @@ class GlobalExceptionHandlerTest {
         assertEquals(400, body.status());
         assertEquals("Bad Request", body.error());
         assertEquals(List.of(), body.details());
+    }
+
+    @Test
+    void validationErrorsReturn400WithFieldDetails() {
+        var bindingResult =
+            new BeanPropertyBindingResult(new Object(), "book");
+
+        bindingResult.addError(
+            new FieldError(
+                "book",
+                "title",
+                "",
+                false,
+                null,
+                null,
+                "Title must not be blank"
+            )
+        );
+
+        var exception =
+            new MethodArgumentNotValidException(null, bindingResult);
+
+        var response = handler.validation(exception, request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(
+            "Request validation failed",
+            response.getBody().message()
+        );
+        assertEquals(1, response.getBody().details().size());
+        assertEquals("title", response.getBody().details().get(0).field());
+        assertEquals(
+            "Title must not be blank",
+            response.getBody().details().get(0).message()
+        );
     }
 }
