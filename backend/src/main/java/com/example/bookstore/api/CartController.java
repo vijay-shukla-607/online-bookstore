@@ -2,6 +2,7 @@ package com.example.bookstore.api;
 
 import com.example.bookstore.service.CartService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -10,15 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/cart")
 public class CartController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CartController.class);
 
     private final CartService service;
-
-    public CartController(CartService service) {
-        this.service = service;
-    }
 
     @GetMapping
     public ApiDtos.CartResponse get(Authentication auth) {

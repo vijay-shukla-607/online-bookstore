@@ -1,6 +1,8 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.util.Objects;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -8,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Getter
 @Table(name = "customer_orders", indexes = @Index(name = "idx_order_user_created", columnList = "user_id,created_at"))
 public class CustomerOrder {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CustomerOrder.class);
@@ -44,29 +47,5 @@ public class CustomerOrder {
         Objects.requireNonNull(line, "Order line must not be null");
         items.add(line);
         line.setOrder(this);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public AppUser getUser() {
-        return user;
-    }
-
-    public BigDecimal getTotal() {
-        return total;
-    }
-
-    public OrderStatus getStatus() {
-        return status;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
-
-    public List<OrderLine> getItems() {
-        return items;
     }
 }

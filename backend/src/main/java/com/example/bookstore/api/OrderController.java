@@ -1,6 +1,7 @@
 package com.example.bookstore.api;
 
 import com.example.bookstore.service.OrderService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -11,15 +12,12 @@ import java.util.List;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/orders")
 public class OrderController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderController.class);
 
     private final OrderService service;
-
-    public OrderController(OrderService service) {
-        this.service = service;
-    }
 
     @PostMapping("/checkout")
     public ResponseEntity<ApiDtos.OrderResponse> checkout(Authentication auth) {

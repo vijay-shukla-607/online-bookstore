@@ -8,12 +8,14 @@ import com.example.bookstore.error.ApiException;
 import com.example.bookstore.repo.BookRepository;
 import com.example.bookstore.repo.CartItemRepository;
 import com.example.bookstore.repo.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class CartService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CartService.class);
@@ -21,12 +23,6 @@ public class CartService {
     private final UserRepository users;
     private final BookRepository books;
     private final CartItemRepository items;
-
-    public CartService(UserRepository users, BookRepository books, CartItemRepository items) {
-        this.users = users;
-        this.books = books;
-        this.items = items;
-    }
 
     public static ApiDtos.CartResponse response(List<CartItem> rows) {
         List<ApiDtos.CartLine> lines = rows.stream()

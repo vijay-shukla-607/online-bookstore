@@ -1,11 +1,14 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.util.Objects;
 import java.time.Instant;
 
 
 @Entity
+@Getter
 @Table(name = "app_users", indexes = @Index(name = "idx_user_email", columnList = "email", unique = true))
 public class AppUser {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AppUser.class);
@@ -38,25 +41,5 @@ public class AppUser {
         if (passwordHash.isBlank()) {
             throw new IllegalArgumentException("Password hash must not be blank");
         }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
     }
 }

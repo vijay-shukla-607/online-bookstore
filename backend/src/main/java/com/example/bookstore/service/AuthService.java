@@ -6,6 +6,7 @@ import com.example.bookstore.domain.Role;
 import com.example.bookstore.error.ApiException;
 import com.example.bookstore.repo.UserRepository;
 import com.example.bookstore.security.JwtService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@RequiredArgsConstructor
 @Service
 public class AuthService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthService.class);
@@ -22,13 +24,6 @@ public class AuthService {
     private final PasswordEncoder encoder;
     private final AuthenticationManager authManager;
     private final JwtService jwt;
-
-    public AuthService(UserRepository users, PasswordEncoder encoder, AuthenticationManager authManager, JwtService jwt) {
-        this.users = users;
-        this.encoder = encoder;
-        this.authManager = authManager;
-        this.jwt = jwt;
-    }
 
     @Transactional
     public ApiDtos.AuthResponse register(ApiDtos.RegisterRequest req) {

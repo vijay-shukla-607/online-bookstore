@@ -1,8 +1,10 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 @Table(name = "cart_items", uniqueConstraints = @UniqueConstraint(name = "uk_cart_user_book", columnNames = {"user_id", "book_id"}))
 public class CartItem {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CartItem.class);
@@ -35,22 +37,6 @@ public class CartItem {
             );
         }
         this.quantity = quantity;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public AppUser getUser() {
-        return user;
-    }
-
-    public Book getBook() {
-        return book;
-    }
-
-    public int getQuantity() {
-        return quantity;
     }
 
 }

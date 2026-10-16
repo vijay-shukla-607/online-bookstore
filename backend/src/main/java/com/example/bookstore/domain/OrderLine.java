@@ -1,10 +1,13 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
 @Entity
+@Getter
 @Table(name = "order_lines")
 public class OrderLine {
 
@@ -76,21 +79,5 @@ public class OrderLine {
     public void setOrder(CustomerOrder order) {
         this.order = Objects.requireNonNull(
             order, "Order must not be null");
-    }
-
-    public Long getBookId() {
-        return bookId;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public BigDecimal getUnitPrice() {
-        return unitPrice;
     }
 }

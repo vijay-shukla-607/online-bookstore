@@ -7,12 +7,14 @@ import com.example.bookstore.repo.BookRepository;
 import com.example.bookstore.repo.CartItemRepository;
 import com.example.bookstore.repo.OrderRepository;
 import com.example.bookstore.repo.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class OrderService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderService.class);
@@ -21,13 +23,6 @@ public class OrderService {
     private final CartItemRepository cart;
     private final BookRepository books;
     private final OrderRepository orders;
-
-    public OrderService(UserRepository users, CartItemRepository cart, BookRepository books, OrderRepository orders) {
-        this.users = users;
-        this.cart = cart;
-        this.books = books;
-        this.orders = orders;
-    }
 
     public static ApiDtos.OrderResponse dto(CustomerOrder order) {
         List<ApiDtos.OrderLineResponse> lines = order.getItems().stream().map(OrderService::toOrderLineResponse).toList();

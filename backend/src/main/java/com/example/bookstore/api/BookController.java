@@ -2,6 +2,7 @@ package com.example.bookstore.api;
 
 import com.example.bookstore.service.BookService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,15 +16,12 @@ import java.util.List;
 
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/books")
 public class BookController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookController.class);
 
     private final BookService service;
-
-    public BookController(BookService service) {
-        this.service = service;
-    }
 
     @GetMapping
     public List<ApiDtos.BookResponse> list(@RequestParam(required = false) String search) {

@@ -4,6 +4,7 @@ import com.example.bookstore.api.ApiDtos;
 import com.example.bookstore.domain.Book;
 import com.example.bookstore.error.ApiException;
 import com.example.bookstore.repo.BookRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,15 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class BookService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookService.class);
 
     private final BookRepository books;
-
-    public BookService(BookRepository books) {
-        this.books = books;
-    }
 
     public static ApiDtos.BookResponse dto(Book b) {
         return new ApiDtos.BookResponse(b.getId(), b.getTitle(), b.getAuthor(), b.getPrice(), b.getStock(), b.getDescription());

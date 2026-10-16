@@ -1,10 +1,13 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+
 import java.util.Objects;
 import java.math.BigDecimal;
 
 @Entity
+@Getter
 @Table(name = "books", indexes = @Index(name = "idx_book_title", columnList = "title"))
 public class Book {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Book.class);
@@ -33,30 +36,6 @@ public class Book {
         this.price = price;
         this.stock = stock;
         this.description = description;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public int getStock() {
-        return stock;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public void update(String title, String author, BigDecimal price, int stock, String description) {
