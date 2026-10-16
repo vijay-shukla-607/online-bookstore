@@ -86,4 +86,67 @@ class CartServiceTest {
 
         then(items).should().save(any(CartItem.class));
     }
+
+    @Test
+    void rejectsAddingQuantityAboveAvailableStock() {
+        AppUser user = new AppUser("person@example.com", "hash", Role.CUSTOMER);
+        Book book = new Book("Limited Book", "Author", new BigDecimal("10.00"), 2, "");
+        ReflectionTestUtils.setField(user, "id", 1L);
+        ReflectionTestUtils.setField(book, "id", 1L);
+        given(users.findByEmail("person@example.com")).willReturn(Optional.of(user));
+        given(books.findById(1L)).willReturn(Optional.of(book));
+
+        com.example.bookstore.error.ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+            com.example.bookstore.error.ApiException.class,
+            () -> service.add("person@example.com", new ApiDtos.AddCartRequest(1L, 3)));
+
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, ex.getStatus());
+        then(items).should(never()).save(any(CartItem.class));
+    }
+
+    @Test
+    void rejectsAddingMoreThanStockWhenItemAlreadyExistsInCart() {
+        AppUser user = new AppUser("person@example.com", "hash", Role.CUSTOMER);
+        Book book = new Book("Limited Book", "Author", new BigDecimal("10.00"), 3, "");
+        ReflectionTestUtils.setField(user, "id", 1L);
+        ReflectionTestUtils.setField(book, "id", 1L);
+        CartItem existing = new CartItem(user, book, 2);
+        given(users.findByEmail("person@example.com")).willReturn(Optional.of(user));
+        given(books.findById(1L)).willReturn(Optional.of(book));
+        given(items.findByUserIdAndBookId(1L, 1L)).willReturn(Optional.of(existing));
+
+        com.example.bookstore.error.ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+            com.example.bookstore.error.ApiException.class,
+            () -> service.add("person@example.com", new ApiDtos.AddCartRequest(1L, 2)));
+
+        assertEquals(org.springframework.http.HttpStatus.CONFLICT, ex.getStatus());
+        assertEquals(2, existing.getQuantity());
+    }
+
+    @Test
+    void rejectsAddingBookThatDoesNotExist() {
+        AppUser user = new AppUser("person@example.com", "hash", Role.CUSTOMER);
+        ReflectionTestUtils.setField(user, "id", 1L);
+        given(users.findByEmail("person@example.com")).willReturn(Optional.of(user));
+        given(books.findById(404L)).willReturn(Optional.empty());
+
+        com.example.bookstore.error.ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+            com.example.bookstore.error.ApiException.class,
+            () -> service.add("person@example.com", new ApiDtos.AddCartRequest(404L, 1)));
+
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatus());
+    }
+
+    @Test
+    void rejectsCartAccessForUnknownUser() {
+        given(users.findByEmail("missing@example.com")).willReturn(Optional.empty());
+
+        com.example.bookstore.error.ApiException ex = org.junit.jupiter.api.Assertions.assertThrows(
+            com.example.bookstore.error.ApiException.class,
+            () -> service.get("missing@example.com"));
+
+        assertEquals(org.springframework.http.HttpStatus.NOT_FOUND, ex.getStatus());
+        then(items).shouldHaveNoInteractions();
+    }
+
 }
