@@ -1,7 +1,7 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
-
+import java.util.Objects;
 import java.time.Instant;
 
 
@@ -27,9 +27,17 @@ public class AppUser {
     }
 
     public AppUser(String email, String passwordHash, Role role) {
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
+        this.email = Objects.requireNonNull(email, "Email must not be null");
+        this.passwordHash = Objects.requireNonNull(
+            passwordHash, "Password hash must not be null");
+        this.role = Objects.requireNonNull(role, "Role must not be null");
+
+        if (email.isBlank()) {
+            throw new IllegalArgumentException("Email must not be blank");
+        }
+        if (passwordHash.isBlank()) {
+            throw new IllegalArgumentException("Password hash must not be blank");
+        }
     }
 
     public Long getId() {

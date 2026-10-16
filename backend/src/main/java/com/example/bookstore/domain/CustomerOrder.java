@@ -1,7 +1,7 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
-
+import java.util.Objects;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -32,11 +32,16 @@ public class CustomerOrder {
     }
 
     public CustomerOrder(AppUser user, BigDecimal total) {
-        this.user = user;
-        this.total = total;
+        this.user = Objects.requireNonNull(user, "Order user must not be null");
+        this.total = Objects.requireNonNull(total, "Order total must not be null");
+
+        if (total.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Order total cannot be negative");
+        }
     }
 
     public void addItem(OrderLine line) {
+        Objects.requireNonNull(line, "Order line must not be null");
         items.add(line);
         line.setOrder(this);
     }
