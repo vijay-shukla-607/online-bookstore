@@ -9,7 +9,7 @@ import com.example.bookstore.repo.OrderRepository;
 import com.example.bookstore.repo.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -29,9 +29,16 @@ public class OrderService {
         this.orders = orders;
     }
 
-    public static ApiDtos.OrderResponse dto(CustomerOrder o) {
-        List<ApiDtos.OrderLineResponse> lines = o.getItems().stream().map(i -> new ApiDtos.OrderLineResponse(i.getBookId(), i.getTitle(), i.getQuantity(), i.getUnitPrice(), i.getUnitPrice().multiply(BigDecimal.valueOf(i.getQuantity())))).toList();
-        return new ApiDtos.OrderResponse(o.getId(), o.getStatus().name(), o.getCreatedAt(), o.getTotal(), lines);
+    public static ApiDtos.OrderResponse dto(CustomerOrder order) {
+        List<ApiDtos.OrderLineResponse> lines = order.getItems().stream().map(OrderService::toOrderLineResponse).toList();
+
+        return new ApiDtos.OrderResponse(order.getId(), order.getStatus().name(), order.getCreatedAt(), order.getTotal(), lines);
+    }
+
+    private static ApiDtos.OrderLineResponse toOrderLineResponse(OrderLine item) {
+        BigDecimal lineTotal = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+
+        return new ApiDtos.OrderLineResponse(item.getBookId(), item.getTitle(), item.getQuantity(), item.getUnitPrice(), lineTotal);
     }
 
     @Transactional
@@ -40,7 +47,7 @@ public class OrderService {
         List<CartItem> cartItems = cart.findAllByUserId(user.getId());
         if (cartItems.isEmpty()) throw ApiException.badRequest("Cart is empty");
         BigDecimal total = BigDecimal.ZERO;
-        java.util.List<OrderLine> orderLines = new java.util.ArrayList<>();
+        List<OrderLine> orderLines = new ArrayList<>();
         for (CartItem ci : cartItems) {
             Book locked = books.findByIdForUpdate(ci.getBook().getId()).orElseThrow(() -> ApiException.notFound("Book not found"));
             if (locked.getStock() < ci.getQuantity())

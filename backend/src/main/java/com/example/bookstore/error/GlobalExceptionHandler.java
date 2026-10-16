@@ -26,9 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiDtos.ErrorResponse> validation(MethodArgumentNotValidException ex, HttpServletRequest req) {
-        var details = ex.getBindingResult().getFieldErrors().stream()
-            .map(e -> new ApiDtos.FieldError(e.getField(), e.getDefaultMessage() == null ? "Invalid value" : e.getDefaultMessage()))
-            .toList();
+        var details = ex.getBindingResult().getFieldErrors().stream().map(e -> new ApiDtos.FieldError(e.getField(), e.getDefaultMessage() == null ? "Invalid value" : e.getDefaultMessage())).toList();
         return response(HttpStatus.BAD_REQUEST, "Request validation failed", req, details);
     }
 
@@ -49,11 +47,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiDtos.ErrorResponse> unexpected(Exception ex, HttpServletRequest req) {
+
+        log.error("Unexpected error processing {} {}", req.getMethod(), req.getRequestURI(), ex);
+
         return response(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred", req, List.of());
     }
 
     private ResponseEntity<ApiDtos.ErrorResponse> response(HttpStatus status, String message, HttpServletRequest req, List<ApiDtos.FieldError> details) {
-        return ResponseEntity.status(status).body(new ApiDtos.ErrorResponse(Instant.now(), status.value(),
-            status.getReasonPhrase(), message, req.getRequestURI(), details));
+        return ResponseEntity.status(status).body(new ApiDtos.ErrorResponse(Instant.now(), status.value(), status.getReasonPhrase(), message, req.getRequestURI(), details));
     }
 }

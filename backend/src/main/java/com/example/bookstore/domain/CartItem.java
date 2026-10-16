@@ -25,6 +25,15 @@ public class CartItem {
     public CartItem(AppUser user, Book book, int quantity) {
         this.user = user;
         this.book = book;
+        setQuantity(quantity);
+    }
+
+    public void setQuantity(int quantity) {
+        if (quantity < 1 || quantity > 1000) {
+            throw new IllegalArgumentException(
+                "Quantity must be between 1 and 1000"
+            );
+        }
         this.quantity = quantity;
     }
 
@@ -44,7 +53,4 @@ public class CartItem {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
 }

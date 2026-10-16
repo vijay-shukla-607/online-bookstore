@@ -1,7 +1,7 @@
 package com.example.bookstore.domain;
 
 import jakarta.persistence.*;
-
+import java.util.Objects;
 import java.math.BigDecimal;
 
 @Entity
@@ -27,6 +27,7 @@ public class Book {
     }
 
     public Book(String title, String author, BigDecimal price, int stock, String description) {
+        validate(price, stock);
         this.title = title;
         this.author = author;
         this.price = price;
@@ -59,6 +60,7 @@ public class Book {
     }
 
     public void update(String title, String author, BigDecimal price, int stock, String description) {
+        validate(price, stock);
         this.title = title;
         this.author = author;
         this.price = price;
@@ -69,5 +71,17 @@ public class Book {
     public void reduceStock(int quantity) {
         if (quantity < 1 || stock < quantity) throw new IllegalStateException("Insufficient stock");
         stock -= quantity;
+    }
+
+    private void validate(BigDecimal price, int stock) {
+        Objects.requireNonNull(price, "Price must not be null");
+
+        if (price.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Price must be greater than zero");
+        }
+
+        if (stock < 0) {
+            throw new IllegalArgumentException("Stock cannot be negative");
+        }
     }
 }

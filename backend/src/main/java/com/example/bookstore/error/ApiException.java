@@ -3,7 +3,6 @@ package com.example.bookstore.error;
 import org.springframework.http.HttpStatus;
 
 public class ApiException extends RuntimeException {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ApiException.class);
 
     private final HttpStatus status;
 
