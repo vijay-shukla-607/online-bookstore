@@ -29,10 +29,32 @@ public class CartService {
     }
 
     public static ApiDtos.CartResponse response(List<CartItem> rows) {
-        List<ApiDtos.CartLine> lines = rows.stream().map(i -> new ApiDtos.CartLine(i.getBook().getId(), i.getBook().getTitle(), i.getBook().getAuthor(), i.getBook().getPrice(), i.getQuantity(), i.getBook().getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))).toList();
-        BigDecimal total = lines.stream().map(ApiDtos.CartLine::lineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<ApiDtos.CartLine> lines = rows.stream()
+            .map(CartService::toCartLine)
+            .toList();
+
+        BigDecimal total = lines.stream()
+            .map(ApiDtos.CartLine::lineTotal)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         return new ApiDtos.CartResponse(lines, total);
     }
+
+    private static ApiDtos.CartLine toCartLine(CartItem item) {
+        Book book = item.getBook();
+        BigDecimal lineTotal = book.getPrice()
+            .multiply(BigDecimal.valueOf(item.getQuantity()));
+
+        return new ApiDtos.CartLine(
+            book.getId(),
+            book.getTitle(),
+            book.getAuthor(),
+            book.getPrice(),
+            item.getQuantity(),
+            lineTotal
+        );
+    }
+
 
     private AppUser user(String email) {
         return users.findByEmail(email).orElseThrow(() -> ApiException.notFound("User not found"));
@@ -58,6 +80,12 @@ public class CartService {
 
     @Transactional
     public ApiDtos.CartResponse setQuantity(String email, Long bookId, int quantity) {
+        // Validate quantity at the service layer
+        if (quantity < 1 || quantity > 1000) {
+            throw ApiException.badRequest(
+                "Quantity must be between 1 and 1000"
+            );
+        }
         AppUser u = user(email);
         CartItem item = items.findByUserIdAndBookId(u.getId(), bookId).orElseThrow(() -> ApiException.notFound("Cart item not found"));
         if (item.getBook().getStock() < quantity)
