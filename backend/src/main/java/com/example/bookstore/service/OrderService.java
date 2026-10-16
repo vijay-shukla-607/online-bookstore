@@ -8,21 +8,24 @@ import com.example.bookstore.repo.CartItemRepository;
 import com.example.bookstore.repo.OrderRepository;
 import com.example.bookstore.repo.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.math.BigDecimal;
 import java.util.List;
 
-@RequiredArgsConstructor
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class OrderService {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(OrderService.class);
 
     private final UserRepository users;
     private final CartItemRepository cart;
     private final BookRepository books;
     private final OrderRepository orders;
+
 
     public static ApiDtos.OrderResponse dto(CustomerOrder order) {
         List<ApiDtos.OrderLineResponse> lines = order.getItems().stream().map(OrderService::toOrderLineResponse).toList();
@@ -37,10 +40,15 @@ public class OrderService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = {"books", "bookById"}, allEntries = true)
     public ApiDtos.OrderResponse checkout(String email) {
+        log.info("Checkout started");
         AppUser user = users.findByEmail(email).orElseThrow(() -> ApiException.notFound("User not found"));
         List<CartItem> cartItems = cart.findAllByUserId(user.getId());
-        if (cartItems.isEmpty()) throw ApiException.badRequest("Cart is empty");
+        if (cartItems.isEmpty()) {
+            log.warn("Checkout rejected because cart is empty userId={}", user.getId());
+            throw ApiException.badRequest("Cart is empty");
+        }
         BigDecimal total = BigDecimal.ZERO;
         List<OrderLine> orderLines = new ArrayList<>();
         for (CartItem ci : cartItems) {
@@ -56,20 +64,29 @@ public class OrderService {
         orderLines.forEach(saved::addItem);
         CustomerOrder result = orders.save(saved);
         cart.deleteByUserId(user.getId());
+        log.info("Checkout completed orderId={} userId={} itemCount={} total={}", result.getId(), user.getId(), orderLines.size(), total);
         return dto(result);
     }
 
     @Transactional(readOnly = true)
     public List<ApiDtos.OrderResponse> list(String email) {
+        log.debug("Retrieving order history");
         AppUser user = users.findByEmail(email).orElseThrow(() -> ApiException.notFound("User not found"));
-        return orders.findAllByUserIdOrderByCreatedAtDesc(user.getId()).stream().map(OrderService::dto).toList();
+        List<ApiDtos.OrderResponse> results = orders.findAllByUserIdOrderByCreatedAtDesc(user.getId()).stream().map(OrderService::dto).toList();
+        log.debug("Order history retrieved userId={} orderCount={}", user.getId(), results.size());
+        return results;
     }
 
     @Transactional(readOnly = true)
     public ApiDtos.OrderResponse get(String email, Long id, boolean admin) {
+        log.debug("Retrieving order orderId={} admin={}", id, admin);
         CustomerOrder o = orders.findById(id).orElseThrow(() -> ApiException.notFound("Order not found"));
         if (!admin && !o.getUser().getEmail().equals(email))
+            {
+            log.warn("Order access denied orderId={}", id);
             throw new ApiException(org.springframework.http.HttpStatus.FORBIDDEN, "Access denied");
+        }
+        log.debug("Order retrieved orderId={} status={}", o.getId(), o.getStatus());
         return dto(o);
     }
 }

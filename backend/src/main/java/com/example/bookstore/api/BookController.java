@@ -3,6 +3,7 @@ package com.example.bookstore.api;
 import com.example.bookstore.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,15 +17,17 @@ import java.util.List;
 
 
 @RestController
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/books")
 public class BookController {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookController.class);
 
     private final BookService service;
 
+
     @GetMapping
     public List<ApiDtos.BookResponse> list(@RequestParam(required = false) String search) {
+        log.debug("HTTP book catalog requested searchPresent={}", search != null && !search.isBlank());
         return service.list(search);
     }
 
@@ -48,29 +51,34 @@ public class BookController {
             throw com.example.bookstore.error.ApiException.badRequest("direction must be asc or desc");
         }
         Pageable pageable = PageRequest.of(page, size, Sort.by(dir, sortBy));
+        log.debug("HTTP paginated book catalog requested page={} size={} sortBy={} direction={}", page, size, sortBy, dir);
         return service.page(search, pageable);
     }
 
     @GetMapping("/{id}")
     public ApiDtos.BookResponse get(@PathVariable Long id) {
+        log.debug("HTTP book details requested bookId={}", id);
         return service.get(id);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiDtos.BookResponse> create(@Valid @RequestBody ApiDtos.BookRequest req) {
+        log.info("HTTP book creation requested");
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ApiDtos.BookResponse update(@PathVariable Long id, @Valid @RequestBody ApiDtos.BookRequest req) {
+        log.info("HTTP book update requested bookId={}", id);
         return service.update(id, req);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        log.info("HTTP book deletion requested bookId={}", id);
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

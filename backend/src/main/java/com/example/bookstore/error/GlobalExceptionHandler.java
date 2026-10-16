@@ -3,6 +3,7 @@ package com.example.bookstore.error;
 import com.example.bookstore.api.ApiDtos;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,33 +16,42 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ApiDtos.ErrorResponse> api(ApiException ex, HttpServletRequest req) {
+        if (ex.getStatus().is5xxServerError()) {
+            log.error("Application error method={} path={} status={}", req.getMethod(), req.getRequestURI(), ex.getStatus().value());
+        } else {
+            log.debug("Handled API error method={} path={} status={}", req.getMethod(), req.getRequestURI(), ex.getStatus().value());
+        }
         return response(ex.getStatus(), ex.getMessage(), req, List.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiDtos.ErrorResponse> validation(MethodArgumentNotValidException ex, HttpServletRequest req) {
+        log.debug("Request validation failed method={} path={}", req.getMethod(), req.getRequestURI());
         var details = ex.getBindingResult().getFieldErrors().stream().map(e -> new ApiDtos.FieldError(e.getField(), e.getDefaultMessage() == null ? "Invalid value" : e.getDefaultMessage())).toList();
         return response(HttpStatus.BAD_REQUEST, "Request validation failed", req, details);
     }
 
     @ExceptionHandler({ConstraintViolationException.class, HttpMessageNotReadableException.class, IllegalArgumentException.class})
     public ResponseEntity<ApiDtos.ErrorResponse> badInput(Exception ex, HttpServletRequest req) {
+        log.debug("Malformed request rejected method={} path={} exceptionType={}", req.getMethod(), req.getRequestURI(), ex.getClass().getSimpleName());
         return response(HttpStatus.BAD_REQUEST, "Invalid request", req, List.of());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiDtos.ErrorResponse> conflict(Exception ex, HttpServletRequest req) {
+        log.warn("Data conflict method={} path={}", req.getMethod(), req.getRequestURI());
         return response(HttpStatus.CONFLICT, "Request conflicts with existing data", req, List.of());
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiDtos.ErrorResponse> forbidden(Exception ex, HttpServletRequest req) {
+        log.warn("Authorization denied method={} path={}", req.getMethod(), req.getRequestURI());
         return response(HttpStatus.FORBIDDEN, "Access denied", req, List.of());
     }
 
